@@ -33,6 +33,7 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 @keyframes float{50%{transform:translateY(-8px)}}
 #warn{min-height:26px;color:#ff7a7a;font-weight:700;text-align:center}
 .cpanel{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.list{display:grid;gap:10px}
 .up{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--txt);cursor:pointer;text-align:left;transition:transform .15s,background .15s;width:100%;font:inherit}
 .up:hover:not(:disabled){transform:translateX(4px);background:rgba(255,255,255,.13)}
 .up:disabled{opacity:.4;cursor:not-allowed}
@@ -43,8 +44,6 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 .right{text-align:right}
 .cost{font-weight:700;color:#ffd34e;white-space:nowrap;font-variant-numeric:tabular-nums}
 .lvl{font-size:.75rem;opacity:.6}
-.star{border-color:rgba(255,211,78,.25)}
-.star .cost{color:#ffd34e}
 .fx{position:fixed;pointer-events:none;font-weight:800;font-size:1.5rem;color:#ffd34e;text-shadow:0 2px 8px #000;animation:up .9s ease-out forwards;z-index:10}
 @keyframes up{to{transform:translateY(-90px);opacity:0}}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#ffd34e,#ff6ec4);color:#1a1a2e;font-weight:800;padding:12px 22px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:20;pointer-events:none;animation:pop 2.6s ease forwards;white-space:nowrap}
@@ -70,10 +69,10 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 .umult{text-align:center;color:var(--mut);font-size:13px;margin:12px 0 8px}
 .umult b{color:var(--txt)}
 .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.chip{background:#1d1d28;border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:10px 0;font-weight:700;cursor:pointer;transition:.2s}
+.chip{background:#1d1d28;border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:10px 0;font-weight:700;cursor:pointer;transition:.2s;font:inherit}
 .chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#140c02}
 .chip:disabled{opacity:.4;cursor:not-allowed}
-.go{width:100%;margin-top:12px;border:0;border-radius:14px;padding:16px;font-weight:900;font-size:16px;letter-spacing:.08em;color:#140c02;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 10px 30px -10px #ff8a1f99}
+.go{width:100%;margin-top:12px;border:0;border-radius:14px;padding:16px;font-weight:900;font-size:16px;letter-spacing:.08em;color:#140c02;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 10px 30px -10px #ff8a1f99;font-family:inherit}
 .go:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
 .sell{width:100%;margin-top:8px;border:1px solid var(--line);background:none;color:var(--mut);border-radius:12px;padding:10px;font-weight:600;cursor:pointer;font:inherit}
 .sell:disabled{opacity:.35;cursor:not-allowed}
@@ -82,7 +81,7 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 .banner.lose{color:var(--lose);border-color:#ff4d5e55;background:#ff4d5e14}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .item{background:#1d1d28;border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;display:grid;gap:3px;font:inherit;color:inherit}
-.item .ico{font-size:26px}
+.item .ico{font-size:26px;width:auto}
 .item b{font-size:12px}
 .item .v{font-size:12px;color:var(--acc2);font-weight:700;font-variant-numeric:tabular-nums}
 .item.sel{border-color:var(--acc);box-shadow:0 0 0 2px #ff8a1f55}
@@ -116,11 +115,11 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
     <div>
       <div class="cpanel">
         <h2>🛒 Улучшения</h2>
-        <div id="upgrades" style="display:grid;gap:10px"></div>
+        <div class="list" id="upgrades"></div>
       </div>
       <div class="cpanel" style="margin-top:20px">
         <h2>🌟 Звёздный магазин</h2>
-        <div id="starShop" style="display:grid;gap:10px"></div>
+        <div class="list" id="starShop"></div>
       </div>
     </div>
   </div>
@@ -225,6 +224,39 @@ const G = {score:0, totalClicks:0, claimed:new Set(), owned:{}, stars:10, starOw
 UPGRADES.forEach(u => G.owned[u.id] = 0);
 const ug = {inv:[], selected:null, nextId:1, spinning:false, chance:50, angle:0};
 
+/* ===== СОХРАНЕНИЕ ===== */
+const SAVE_KEY = 'clicker-universe-save-v1';
+
+function loadGame(){
+  try{
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (!d) return;
+    G.score = d.score ?? 0;
+    G.totalClicks = d.totalClicks ?? 0;
+    G.stars = d.stars ?? 10;
+    G.starOwned = d.starOwned || {};
+    G.claimed = new Set(d.claimed || []);
+    UPGRADES.forEach(u => G.owned[u.id] = (d.owned && d.owned[u.id]) || 0);
+    ug.inv = d.inv || [];
+    ug.selected = d.selected ?? null;
+    ug.nextId = d.nextId || 1;
+    ug.chance = d.chance || 50;
+    ug.angle = d.angle || 0;
+  }catch(e){ /* повреждённое сохранение игнорируем */ }
+}
+
+function saveGame(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      score:G.score, totalClicks:G.totalClicks, stars:G.stars,
+      starOwned:G.starOwned, claimed:[...G.claimed], owned:G.owned,
+      inv:ug.inv, selected:ug.selected, nextId:ug.nextId,
+      chance:ug.chance, angle:ug.angle
+    }));
+  }catch(e){ /* хранилище недоступно */ }
+}
+
+/* ===== УТИЛИТЫ ===== */
 const $ = id => document.getElementById(id);
 const fmt = n => {
   if (n < 1000) return Math.floor(n).toString();
@@ -262,7 +294,6 @@ function burst(x, y, text){
   setTimeout(() => el.remove(), 900);
 }
 
-/* ===== ВИДЫ ===== */
 function showView(name){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
   $('v-' + name).classList.add('on');
@@ -270,7 +301,7 @@ function showView(name){
   window.scrollTo(0, 0);
 }
 
-/* ===== КЛИКЕР: СОЗДАНИЕ КНОПОК ===== */
+/* ===== КЛИКЕР: КНОПКИ ===== */
 UPGRADES.forEach(u => {
   const b = document.createElement('button');
   b.className = 'up';
@@ -284,7 +315,7 @@ UPGRADES.forEach(u => {
 
 STAR_ITEMS.forEach(s => {
   const b = document.createElement('button');
-  b.className = 'up star';
+  b.className = 'up';
   b.id = 'st-' + s.id;
   b.innerHTML = `<span class="ico">${s.ico}</span>
     <span class="info"><b>${s.name}</b><small>${s.desc}</small><div class="lvl"></div></span>
@@ -432,13 +463,6 @@ $('coin').addEventListener('pointerdown', e => {
   renderClicker();
 });
 
-/* ===== ИГРОВОЙ ЦИКЛ ===== */
-setInterval(() => {
-  const rate = perSec();
-  if (rate > 0) G.score += rate / 10;
-  renderClicker();
-}, 100);
-
 /* ===== АПГРЕЙДЕР ===== */
 const uMult = () => EDGE * 100 / ug.chance;
 
@@ -567,7 +591,23 @@ $('uSpin').onclick = uSpin;
 $('uSell').onclick = uSell;
 $('btnBack').onclick = () => showView('clicker');
 
+/* ===== ИГРОВОЙ ЦИКЛ ===== */
+setInterval(() => {
+  const rate = perSec();
+  if (rate > 0) G.score += rate / 10;
+  renderClicker();
+}, 100);
+
+/* ===== ЗАПУСК И АВТОСОХРАНЕНИЕ ===== */
+loadGame();
+setInterval(saveGame, 1000);
+window.addEventListener('pagehide', saveGame);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveGame();
+});
+
 renderClicker();
+uRender();
 </script>
 </body>
 </html>
