@@ -1,5 +1,236 @@
-    <div class="container">
-        <div class="icon">💡</div>
-        <h1>Я жду ваши идеи!</h1>
-        <p>Возвращайтесь в чат с ботом и отправляйте свои предложения.</p>
-    </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кликер Вселенная</title>
+<style>
+:root{--accent:#ffd34e;--accent2:#ff6ec4;--text:#f5f5ff}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-attachment:fixed;display:flex;justify-content:center;padding:24px 16px;overflow-x:hidden}
+.wrap{width:100%;max-width:960px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+@media(max-width:720px){.wrap{grid-template-columns:1fr}}
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:12px}
+h1{font-size:1.7rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.score{font-size:3.2rem;font-weight:800;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(255,211,78,.45)}
+.rate{opacity:.7}
+#goal{font-size:.9rem;opacity:.8;text-align:center}
+#coin{width:230px;height:230px;border-radius:50%;border:none;cursor:pointer;background:radial-gradient(circle at 30% 30%,#fff7b0,var(--accent) 40%,#d98c00 85%);box-shadow:0 0 0 10px rgba(255,211,78,.12),0 20px 70px rgba(255,160,0,.45);font-size:5.5rem;transition:transform .08s,filter .3s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:float 3s ease-in-out infinite}
+#coin:active{transform:scale(.93)}
+#coin.locked{filter:grayscale(1) brightness(.6);cursor:not-allowed;animation:none}
+@keyframes float{50%{transform:translateY(-8px)}}
+#warn{min-height:26px;color:#ff7a7a;font-weight:700;text-align:center}
+.fx{position:fixed;pointer-events:none;font-weight:800;font-size:1.5rem;color:var(--accent);text-shadow:0 2px 8px #000;animation:up .9s ease-out forwards;z-index:10}
+@keyframes up{to{transform:translateY(-90px);opacity:0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1a1a2e;font-weight:800;padding:12px 22px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:20;pointer-events:none;animation:pop 2.6s ease forwards;white-space:nowrap}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-20px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.shop{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.shop h2{font-size:1.2rem;margin-bottom:4px}
+.up{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text);cursor:pointer;text-align:left;transition:transform .15s,background .15s;width:100%;font:inherit}
+.up:hover:not(:disabled){transform:translateX(4px);background:rgba(255,255,255,.13)}
+.up:disabled{opacity:.4;cursor:not-allowed}
+.ico{font-size:1.8rem;width:44px;text-align:center}
+.info{flex:1;min-width:0}
+.info b{display:block;font-size:1rem}
+.info small{opacity:.7}
+.right{text-align:right}
+.cost{font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.lvl{font-size:.75rem;opacity:.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <h1>✨ Кликер Вселенная ✨</h1>
+    <div class="score" id="score">0</div>
+    <div class="rate" id="rate">0 / сек</div>
+    <div id="goal"></div>
+    <button id="coin" aria-label="Клик">🪙</button>
+    <div id="warn"></div>
+  </div>
+  <div class="shop">
+    <h2>🛒 Улучшения</h2>
+    <div id="upgrades"></div>
+  </div>
+</div>
+
+<script>
+const UPGRADES = [
+  {id:'finger', ico:'👆', name:'Сильный палец', desc:'+1 за клик', type:'click', val:1, base:15},
+  {id:'hammer', ico:'🔨', name:'Золотой молот', desc:'+5 за клик', type:'click', val:5, base:120},
+  {id:'crit',   ico:'💥', name:'Критический удар', desc:'10% шанс ×5 за клик', type:'crit', base:400, max:1},
+  {id:'drone',  ico:'🛸', name:'Дрон-сборщик', desc:'+2 в секунду', type:'auto', val:2, base:60},
+  {id:'farm',   ico:'🌾', name:'Ферма монет', desc:'+12 в секунду', type:'auto', val:12, base:500},
+  {id:'factory',ico:'🏭', name:'Фабрика', desc:'+60 в секунду', type:'auto', val:60, base:3000},
+  {id:'portal', ico:'🌀', name:'Портал', desc:'+400 в секунду', type:'auto', val:400, base:25000},
+  {id:'star',   ico:'⭐', name:'Звёздная фабрика', desc:'+3000 в секунду', type:'auto', val:3000, base:250000}
+];
+
+/* Бонусы за количество кликов */
+const MILESTONES = [
+  {at:100,  reward:500},
+  {at:1000, reward:1000}
+];
+const claimed = new Set();
+let totalClicks = 0;
+
+const owned = {};
+UPGRADES.forEach(u => owned[u.id] = 0);
+let score = 0;
+
+const $ = id => document.getElementById(id);
+const coin = $('coin'), scoreEl = $('score'), rateEl = $('rate'), goalEl = $('goal'), warnEl = $('warn'), shopEl = $('upgrades');
+
+function fmt(n){
+  if (n < 1000) return Math.floor(n).toString();
+  const s = ['K','M','B','T','Qa','Qi'];
+  let i = -1;
+  while (n >= 1000 && i < s.length - 1){ n /= 1000; i++; }
+  return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + s[i];
+}
+
+const cost = u => Math.floor(u.base * Math.pow(1.6, owned[u.id]));
+const clickPower = () => 1 + UPGRADES.filter(u => u.type === 'click').reduce((a,u) => a + u.val * owned[u.id], 0);
+const critOn = () => owned.crit > 0;
+const perSec = () => UPGRADES.filter(u => u.type === 'auto').reduce((a,u) => a + u.val * owned[u.id], 0);
+
+/* ---------- Магазин ---------- */
+UPGRADES.forEach(u => {
+  const b = document.createElement('button');
+  b.className = 'up';
+  b.id = 'up-' + u.id;
+  b.innerHTML = `
+    <span class="ico">${u.ico}</span>
+    <span class="info"><b>${u.name}</b><small>${u.desc}</small><div class="lvl"></div></span>
+    <span class="right"><span class="cost"></span></span>`;
+  b.addEventListener('click', () => buy(u));
+  shopEl.appendChild(b);
+});
+
+function buy(u){
+  if (u.max && owned[u.id] >= u.max) return;
+  const c = cost(u);
+  if (score < c) return;
+  score -= c;
+  owned[u.id]++;
+  burst(innerWidth / 2, innerHeight / 2, '🎉');
+  updateUI();
+}
+
+function updateUI(){
+  scoreEl.textContent = fmt(score);
+  rateEl.textContent = fmt(perSec()) + ' / сек';
+  const next = MILESTONES.find(m => !claimed.has(m.at));
+  goalEl.textContent = next
+    ? `Кликов: ${totalClicks} · Бонус на ${next.at}: +${next.reward}`
+    : `Кликов: ${totalClicks} · Все бонусы получены 🎉`;
+  UPGRADES.forEach(u => {
+    const b = $('up-' + u.id);
+    const maxed = u.max && owned[u.id] >= u.max;
+    b.disabled = maxed || score < cost(u);
+    b.querySelector('.lvl').textContent = maxed ? 'Куплено' : 'Уровень ' + owned[u.id];
+    b.querySelector('.cost').textContent = maxed ? 'MAX' : fmt(cost(u));
+  });
+}
+
+/* ---------- Бонусы ---------- */
+function showToast(text){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+function checkMilestones(){
+  MILESTONES.forEach(m => {
+    if (totalClicks >= m.at && !claimed.has(m.at)){
+      claimed.add(m.at);
+      score += m.reward;
+      showToast(`🏆 ${m.at} кликов! Бонус +${fmt(m.reward)}`);
+    }
+  });
+}
+
+/* ---------- Анти-автокликер ---------- */
+const clickTimes = [];
+let fastStreak = 0, lockUntil = 0, lockTimer = null;
+
+function isBot(now){
+  clickTimes.push(now);
+  if (clickTimes.length > 12) clickTimes.shift();
+  if (clickTimes.length >= 2){
+    const gap = now - clickTimes[clickTimes.length - 2];
+    fastStreak = gap < 45 ? fastStreak + 1 : 0;
+  }
+  if (fastStreak >= 4) return true;
+  if (clickTimes.length === 12){
+    const gaps = [];
+    for (let i = 1; i < clickTimes.length; i++) gaps.push(clickTimes[i] - clickTimes[i-1]);
+    const mean = gaps.reduce((a,b)=>a+b,0) / gaps.length;
+    const sd = Math.sqrt(gaps.reduce((a,g)=>a + (g-mean)**2, 0) / gaps.length);
+    if (mean < 400 && sd < 6) return true; // слишком ровный ритм — это машина
+  }
+  return false;
+}
+
+function lockOut(){
+  lockUntil = performance.now() + 3000;
+  clickTimes.length = 0;
+  fastStreak = 0;
+  coin.classList.add('locked');
+  let left = 3;
+  warnEl.textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
+  clearInterval(lockTimer);
+  lockTimer = setInterval(() => {
+    left--;
+    if (left > 0) warnEl.textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
+    else {
+      clearInterval(lockTimer);
+      coin.classList.remove('locked');
+      warnEl.textContent = '';
+    }
+  }, 1000);
+}
+
+/* ---------- Клик ---------- */
+function burst(x, y, text){
+  const el = document.createElement('div');
+  el.className = 'fx';
+  el.textContent = text;
+  el.style.left = (x - 10 + Math.random()*20) + 'px';
+  el.style.top = (y - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+coin.addEventListener('pointerdown', e => {
+  if (!e.isTrusted) return;                 // программные клики игнорируются
+  const now = performance.now();
+  if (now < lockUntil) return;
+  if (isBot(now)){ lockOut(); return; }
+
+  let gain = clickPower();
+  let crit = false;
+  if (critOn() && Math.random() < 0.1){ gain *= 5; crit = true; }
+  score += gain;
+  totalClicks++;
+  checkMilestones();
+
+  coin.classList.remove('hit'); void coin.offsetWidth; coin.classList.add('hit');
+  burst(e.clientX, e.clientY, (crit ? '💥 ' : '+') + fmt(gain));
+  updateUI();
+});
+
+/* ---------- Игровой цикл ---------- */
+setInterval(() => {
+  const rate = perSec();
+  if (rate > 0) score += rate / 10;
+  updateUI();
+}, 100);
+
+updateUI();
+</script>
+</body>
+</html>
