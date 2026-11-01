@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <title>Кликер Вселенная</title>
 <style>
 :root{--acc:#ff8a1f;--acc2:#ffb020;--win:#3ddc84;--lose:#ff4d5e;--card:#16161f;--line:#252533;--txt:#f2f2f7;--mut:#8a8a9e}
@@ -60,7 +61,7 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 .pct span{margin-top:6px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;background:var(--card);padding:0 6px}
 .cards{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-top:14px}
 .mini{background:#1d1d28;border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;display:grid;gap:4px;min-height:132px;align-content:center}
-.mini .ico{font-size:36px}
+.mini .ico{font-size:36px;width:auto}
 .mini small{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 .mini b{font-size:14px}
 .mini .v{font-weight:800;color:var(--acc2);font-variant-numeric:tabular-nums;font-size:14px}
@@ -69,12 +70,12 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
 .umult{text-align:center;color:var(--mut);font-size:13px;margin:12px 0 8px}
 .umult b{color:var(--txt)}
 .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.chip{background:#1d1d28;border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:10px 0;font-weight:700;cursor:pointer;transition:.2s;font:inherit}
+.chip{background:#1d1d28;border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:10px 0;font:inherit;font-weight:700;cursor:pointer;transition:.2s}
 .chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#140c02}
 .chip:disabled{opacity:.4;cursor:not-allowed}
-.go{width:100%;margin-top:12px;border:0;border-radius:14px;padding:16px;font-weight:900;font-size:16px;letter-spacing:.08em;color:#140c02;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 10px 30px -10px #ff8a1f99;font-family:inherit}
+.go{width:100%;margin-top:12px;border:0;border-radius:14px;padding:16px;font-family:inherit;font-weight:900;font-size:16px;letter-spacing:.08em;color:#140c02;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 10px 30px -10px #ff8a1f99}
 .go:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
-.sell{width:100%;margin-top:8px;border:1px solid var(--line);background:none;color:var(--mut);border-radius:12px;padding:10px;font-weight:600;cursor:pointer;font:inherit}
+.sell{width:100%;margin-top:8px;border:1px solid var(--line);background:none;color:var(--mut);border-radius:12px;padding:10px;font:inherit;font-weight:600;cursor:pointer}
 .sell:disabled{opacity:.35;cursor:not-allowed}
 .banner{margin-top:12px;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;background:#1d1d28;border:1px solid var(--line)}
 .banner.win{color:var(--win);border-color:#3ddc8455;background:#3ddc8414}
@@ -227,33 +228,34 @@ const ug = {inv:[], selected:null, nextId:1, spinning:false, chance:50, angle:0}
 /* ===== СОХРАНЕНИЕ ===== */
 const SAVE_KEY = 'clicker-universe-save-v1';
 
+function applySave(d){
+  G.score = d.score ?? 0;
+  G.totalClicks = d.totalClicks ?? 0;
+  G.stars = d.stars ?? 10;
+  G.starOwned = d.starOwned || {};
+  G.claimed = new Set(d.claimed || []);
+  UPGRADES.forEach(u => G.owned[u.id] = (d.owned && d.owned[u.id]) || 0);
+  ug.inv = d.inv || [];
+  ug.selected = d.selected ?? null;
+  ug.nextId = d.nextId || 1;
+  ug.chance = d.chance || 50;
+  ug.angle = d.angle || 0;
+}
+
 function loadGame(){
   try{
     const d = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (!d) return;
-    G.score = d.score ?? 0;
-    G.totalClicks = d.totalClicks ?? 0;
-    G.stars = d.stars ?? 10;
-    G.starOwned = d.starOwned || {};
-    G.claimed = new Set(d.claimed || []);
-    UPGRADES.forEach(u => G.owned[u.id] = (d.owned && d.owned[u.id]) || 0);
-    ug.inv = d.inv || [];
-    ug.selected = d.selected ?? null;
-    ug.nextId = d.nextId || 1;
-    ug.chance = d.chance || 50;
-    ug.angle = d.angle || 0;
+    if (d) applySave(d);
   }catch(e){ /* повреждённое сохранение игнорируем */ }
 }
 
-function saveGame(){
-  try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify({
-      score:G.score, totalClicks:G.totalClicks, stars:G.stars,
-      starOwned:G.starOwned, claimed:[...G.claimed], owned:G.owned,
-      inv:ug.inv, selected:ug.selected, nextId:ug.nextId,
-      chance:ug.chance, angle:ug.angle
-    }));
-  }catch(e){ /* хранилище недоступно */ }
+function gameData(){
+  return JSON.stringify({
+    score:G.score, totalClicks:G.totalClicks, stars:G.stars,
+    starOwned:G.starOwned, claimed:[...G.claimed], owned:G.owned,
+    inv:ug.inv, selected:ug.selected, nextId:ug.nextId,
+    chance:ug.chance, angle:ug.angle
+  });
 }
 
 /* ===== УТИЛИТЫ ===== */
@@ -598,171 +600,60 @@ setInterval(() => {
   renderClicker();
 }, 100);
 
-/* ===== ЗАПУСК И АВТОСОХРАНЕНИЕ ===== */
-loadGame();
-setInterval(saveGame, 1000);
-window.addEventListener('pagehide', saveGame);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') saveGame();
-});
-
-renderClicker();
-uRender();
-    // --- Продолжение отрисовки магазина ---
-  document.querySelectorAll('#uShop .item').forEach((b, idx) => {
-    b.disabled = G.stars < UP_SHOP[idx].value;
-  });
-}
-
-function uBuy(s){
-  if (ug.spinning) return;
-  if (G.stars < s.value){
-    uSetResult('Не хватает звёзд', 'lose');
-    return;
-  }
-  G.stars -= s.value;
-  ug.inv.push({id: ug.nextId++, name: s.name, value: s.value, ico: s.ico});
-  uSetResult('Куплено: ' + s.name);
-  uRender();
-}
-
-function uSpin(){
-  const it = ug.inv.find(i => i.id === ug.selected);
-  if (!it || ug.spinning) return;
-  ug.spinning = true;
-  uRender();
-  uSetResult('Прокачка...');
-  const c = ug.chance;
-  const roll = Math.random() * 100;
-  const win = roll < c;
-  const needle = $('uNeedle');
-  const start = ug.angle;
-  const target = roll * 3.6;
-  const turns = 4 + Math.floor(Math.random() * 4);
-  const D = mod(target - start, 360) + 360 * turns;
-  const dur = 3500 + Math.random() * 1500;
-  const t0 = performance.now();
-  const ease = t => 1 - Math.pow(1 - t, 4);
-  needle.style.transition = 'none';
-  function frame(now){
-    const t = Math.min(1, (now - t0) / dur);
-    needle.style.transform = `rotate(${start + D * ease(t)}deg)`;
-    if (t < 1) requestAnimationFrame(frame);
-    else { ug.angle = start + D; setTimeout(() => uFinish(it, win, roll, c), 200); }
-  }
-  requestAnimationFrame(frame);
-}
-
-function uFinish(it, win, roll, c){
-  ug.spinning = false;
-  if (win){
-    it.value = Math.round(it.value * uMult());
-    uSetResult(`🎉 Удача! Предмет теперь стоит ⭐ ${fmt(it.value)}`, 'win');
-  } else {
-    ug.inv = ug.inv.filter(i => i.id !== it.id);
-    ug.selected = null;
-    uSetResult(`💥 Провал (выпало ${roll.toFixed(1)}, нужно меньше ${c}). Предмет потерян.`, 'lose');
-  }
-  uRender();
-}
-
-function uSell(){
-  const it = ug.inv.find(i => i.id === ug.selected);
-  if (!it || ug.spinning) return;
-  G.stars += it.value;
-  ug.inv = ug.inv.filter(i => i.id !== it.id);
-  ug.selected = null;
-  uSetResult(`Продано за ⭐ ${fmt(it.value)}`);
-  uRender();
-}
-
-UP_SHOP.forEach(s => {
-  const b = document.createElement('button');
-  b.className = 'item';
-  b.innerHTML = `<span class="ico">${s.ico}</span><div><b>${s.name}</b></div><span class="price">⭐ ${fmt(s.value)}</span>`;
-  b.onclick = () => uBuy(s);
-  $('uShop').appendChild(b);
-});
-
-document.querySelectorAll('#uChips .chip').forEach(b => {
-  b.onclick = () => { if (!ug.spinning){ ug.chance = +b.dataset.c; uRender(); } };
-});
-$('uSpin').onclick = uSpin;
-$('uSell').onclick = uSell;
-$('btnBack').onclick = () => showView('clicker');
-
-/* ===== ИГРОВОЙ ЦИКЛ ===== */
-setInterval(() => {
-  const rate = perSec();
-  if (rate > 0) G.score += rate / 10;
-  renderClicker();
-}, 100);
-
 /* ===== СОХРАНЕНИЕ В ОБЛАКО И ОТПРАВКА ЗВЁЗД ===== */
 function saveToTelegramCloud() {
-    const data = JSON.stringify({
-        score: G.score, totalClicks: G.totalClicks, stars: G.stars,
-        starOwned: G.starOwned, claimed: [...G.claimed], owned: G.owned,
-        inv: ug.inv, selected: ug.selected, nextId: ug.nextId,
-        chance: ug.chance, angle: ug.angle
-    });
+  const data = gameData();
+  localStorage.setItem(SAVE_KEY, data);
 
-    localStorage.setItem(SAVE_KEY, data);
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.setItem(SAVE_KEY, data);
+  }
 
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        window.Telegram.WebApp.CloudStorage.setItem(SAVE_KEY, data);
+  // Отправляем баланс звёзд боту
+  if (tg && tg.initDataUnsafe) {
+    const user = tg.initDataUnsafe.user;
+    if (user && user.id) {
+      fetch("http://localhost:5000/api/update_stars", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, stars: G.stars })
+      }).catch(e => console.log("Ошибка синхронизации", e));
     }
-
-    // Отправляем баланс звезд боту
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
-        const user = window.Telegram.WebApp.initDataUnsafe.user;
-        if (user && user.id) {
-            fetch("http://localhost:5000/api/update_stars", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: user.id, stars: G.stars })
-            }).catch(e => console.log("Ошибка синхронизации", e));
-        }
-    }
+  }
 }
 
 function loadFromTelegramCloud() {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        window.Telegram.WebApp.CloudStorage.getItem(SAVE_KEY, (err, value) => {
-            if (!err && value) {
-                try {
-                    const d = JSON.parse(value);
-                    G.score = d.score ?? 0;
-                    G.totalClicks = d.totalClicks ?? 0;
-                    G.stars = d.stars ?? 10;
-                    G.starOwned = d.starOwned || {};
-                    G.claimed = new Set(d.claimed || []);
-                    UPGRADES.forEach(u => G.owned[u.id] = (d.owned && d.owned[u.id]) || 0);
-                    ug.inv = d.inv || [];
-                    ug.selected = d.selected ?? null;
-                    ug.nextId = d.nextId || 1;
-                    ug.chance = d.chance || 50;
-                    ug.angle = d.angle || 0;
-                    renderClicker();
-                    uRender();
-                } catch(e) { console.error("Ошибка загрузки из облака", e); }
-            }
-        });
-    }
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.getItem(SAVE_KEY, (err, value) => {
+      if (!err && value) {
+        try {
+          applySave(JSON.parse(value));
+          renderClicker();
+          uRender();
+        } catch(e) { console.error("Ошибка загрузки из облака", e); }
+      }
+    });
+  }
 }
 
-// Запуск
-if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
+/* ===== ЗАПУСК ===== */
+const tgApp = window.Telegram && window.Telegram.WebApp;
+if (tgApp) {
+  tgApp.ready();
+  tgApp.expand();
 }
 
-loadGame(); 
-loadFromTelegramCloud(); 
+loadGame();
+loadFromTelegramCloud();
 
-setInterval(saveToTelegramCloud, 10000); // Сохраняем каждые 10 секунд (и шлем звезды)
+setInterval(saveToTelegramCloud, 10000);
 window.addEventListener('pagehide', saveToTelegramCloud);
 window.addEventListener('beforeunload', saveToTelegramCloud);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveToTelegramCloud();
+});
 
 renderClicker();
 uRender();
