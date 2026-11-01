@@ -227,6 +227,7 @@ const ug = {inv:[], selected:null, nextId:1, spinning:false, chance:50, angle:0}
 
 /* ===== СОХРАНЕНИЕ ===== */
 const SAVE_KEY = 'clicker-universe-save-v1';
+const API = "http://localhost:5000"; // на телефоне замени на публичный HTTPS-адрес сервера
 
 function applySave(d){
   G.score = d.score ?? 0;
@@ -242,20 +243,57 @@ function applySave(d){
   ug.angle = d.angle || 0;
 }
 
-function loadGame(){
-  try{
-    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (d) applySave(d);
-  }catch(e){ /* повреждённое сохранение игнорируем */ }
-}
-
 function gameData(){
-  return JSON.stringify({
+  return {
     score:G.score, totalClicks:G.totalClicks, stars:G.stars,
     starOwned:G.starOwned, claimed:[...G.claimed], owned:G.owned,
     inv:ug.inv, selected:ug.selected, nextId:ug.nextId,
     chance:ug.chance, angle:ug.angle
-  });
+  };
+}
+
+const tgApp = window.Telegram && window.Telegram.WebApp;
+const tgUser = tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user;
+
+let playerId = tgUser ? String(tgUser.id) : localStorage.getItem('player-id');
+if (!playerId){
+  playerId = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  localStorage.setItem('player-id', playerId);
+}
+
+let gameLoaded = false; // пока не загрузили сохранение, ничего не записываем
+
+function loadLocal(){
+  try{
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (d) applySave(d);
+  }catch(e){}
+}
+
+async function loadFromServer(){
+  try{
+    const r = await fetch(`${API}/api/load?player_id=${encodeURIComponent(playerId)}`);
+    const { data } = await r.json();
+    if (data) applySave(data);
+    else loadLocal();
+  }catch(e){
+    loadLocal();
+  }
+  gameLoaded = true;
+  renderClicker();
+  uRender();
+}
+
+function saveAll(){
+  if (!gameLoaded) return;
+  const data = gameData();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }catch(e){}
+  fetch(`${API}/api/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ player_id: playerId, data }),
+    keepalive: true
+  }).catch(() => {});
 }
 
 /* ===== УТИЛИТЫ ===== */
@@ -600,59 +638,14 @@ setInterval(() => {
   renderClicker();
 }, 100);
 
-/* ===== СОХРАНЕНИЕ В ОБЛАКО И ОТПРАВКА ЗВЁЗД ===== */
-function saveToTelegramCloud() {
-  const data = gameData();
-  localStorage.setItem(SAVE_KEY, data);
-
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.setItem(SAVE_KEY, data);
-  }
-
-  // Отправляем баланс звёзд боту
-  if (tg && tg.initDataUnsafe) {
-    const user = tg.initDataUnsafe.user;
-    if (user && user.id) {
-      fetch("http://localhost:5000/api/update_stars", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, stars: G.stars })
-      }).catch(e => console.log("Ошибка синхронизации", e));
-    }
-  }
-}
-
-function loadFromTelegramCloud() {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.getItem(SAVE_KEY, (err, value) => {
-      if (!err && value) {
-        try {
-          applySave(JSON.parse(value));
-          renderClicker();
-          uRender();
-        } catch(e) { console.error("Ошибка загрузки из облака", e); }
-      }
-    });
-  }
-}
-
 /* ===== ЗАПУСК ===== */
-const tgApp = window.Telegram && window.Telegram.WebApp;
-if (tgApp) {
-  tgApp.ready();
-  tgApp.expand();
-}
+if (tgApp){ tgApp.ready(); tgApp.expand(); }
 
-loadGame();
-loadFromTelegramCloud();
-
-setInterval(saveToTelegramCloud, 10000);
-window.addEventListener('pagehide', saveToTelegramCloud);
-window.addEventListener('beforeunload', saveToTelegramCloud);
+loadFromServer();
+setInterval(saveAll, 2000);
+window.addEventListener('pagehide', saveAll);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') saveToTelegramCloud();
+  if (document.visibilityState === 'hidden') saveAll();
 });
 
 renderClicker();
