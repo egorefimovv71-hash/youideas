@@ -5,29 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Кликер Вселенная</title>
 <style>
-:root{--accent:#ffd34e;--accent2:#ff6ec4;--text:#f5f5ff}
+:root{--acc:#ff8a1f;--acc2:#ffb020;--win:#3ddc84;--lose:#ff4d5e;--card:#16161f;--line:#252533;--txt:#f2f2f7;--mut:#8a8a9e}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-attachment:fixed;display:flex;justify-content:center;padding:24px 16px;overflow-x:hidden}
-.wrap{width:100%;max-width:960px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-attachment:fixed;padding:24px 16px;overflow-x:hidden;color-scheme:dark}
+.view{display:none}
+.view.on{display:block}
+h1{font-size:1.5rem;background:linear-gradient(90deg,#ffd34e,#ff6ec4);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:12px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.pbtn{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:transform .15s,background .15s}
+.pbtn:hover:not(:disabled){transform:translateY(-2px);background:#24243a}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+.pbtn.gold{background:linear-gradient(135deg,#ffd34e,#ff8a1f);color:#140c02;border-color:transparent}
+
+/* ---------- Кликер ---------- */
+.wrap{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
 @media(max-width:720px){.wrap{grid-template-columns:1fr}}
-.stage{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:12px}
-h1{font-size:1.7rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:8px}
+.top{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
 .score{font-size:3.2rem;font-weight:800;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(255,211,78,.45)}
 .rate{opacity:.7}
 #goal{font-size:.9rem;opacity:.8;text-align:center}
-#coin{width:230px;height:230px;border-radius:50%;border:none;cursor:pointer;background:radial-gradient(circle at 30% 30%,#fff7b0,var(--accent) 40%,#d98c00 85%);box-shadow:0 0 0 10px rgba(255,211,78,.12),0 20px 70px rgba(255,160,0,.45);font-size:5.5rem;transition:transform .08s,filter .3s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:float 3s ease-in-out infinite}
+#coin{width:230px;height:230px;border-radius:50%;border:none;cursor:pointer;background:radial-gradient(circle at 30% 30%,#fff7b0,#ffd34e 40%,#d98c00 85%);box-shadow:0 0 0 10px rgba(255,211,78,.12),0 20px 70px rgba(255,160,0,.45);font-size:5.5rem;transition:transform .08s,filter .3s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;animation:float 3s ease-in-out infinite}
 #coin:active{transform:scale(.93)}
 #coin.locked{filter:grayscale(1) brightness(.6);cursor:not-allowed;animation:none}
 @keyframes float{50%{transform:translateY(-8px)}}
 #warn{min-height:26px;color:#ff7a7a;font-weight:700;text-align:center}
-.fx{position:fixed;pointer-events:none;font-weight:800;font-size:1.5rem;color:var(--accent);text-shadow:0 2px 8px #000;animation:up .9s ease-out forwards;z-index:10}
-@keyframes up{to{transform:translateY(-90px);opacity:0}}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1a1a2e;font-weight:800;padding:12px 22px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:20;pointer-events:none;animation:pop 2.6s ease forwards;white-space:nowrap}
-@keyframes pop{0%{opacity:0;transform:translate(-50%,-20px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
-.shop{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
-.shop h2{font-size:1.2rem;margin-bottom:4px}
-.up{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text);cursor:pointer;text-align:left;transition:transform .15s,background .15s;width:100%;font:inherit}
+.cpanel{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.up{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--txt);cursor:pointer;text-align:left;transition:transform .15s,background .15s;width:100%;font:inherit}
 .up:hover:not(:disabled){transform:translateX(4px);background:rgba(255,255,255,.13)}
 .up:disabled{opacity:.4;cursor:not-allowed}
 .ico{font-size:1.8rem;width:44px;text-align:center}
@@ -35,27 +41,153 @@ h1{font-size:1.7rem;background:linear-gradient(90deg,var(--accent),var(--accent2
 .info b{display:block;font-size:1rem}
 .info small{opacity:.7}
 .right{text-align:right}
-.cost{font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.cost{font-weight:700;color:#ffd34e;white-space:nowrap;font-variant-numeric:tabular-nums}
 .lvl{font-size:.75rem;opacity:.6}
+.star{border-color:rgba(255,211,78,.25)}
+.star .cost{color:#ffd34e}
+.fx{position:fixed;pointer-events:none;font-weight:800;font-size:1.5rem;color:#ffd34e;text-shadow:0 2px 8px #000;animation:up .9s ease-out forwards;z-index:10}
+@keyframes up{to{transform:translateY(-90px);opacity:0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#ffd34e,#ff6ec4);color:#1a1a2e;font-weight:800;padding:12px 22px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:20;pointer-events:none;animation:pop 2.6s ease forwards;white-space:nowrap}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-20px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+
+/* ---------- Апгрейдер ---------- */
+.app{max-width:420px;margin:0 auto;display:grid;gap:14px}
+.uhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
+.gauge{position:relative;width:min(260px,80vw);aspect-ratio:1;margin:4px auto 0}
+.gauge svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 0 24px #ff8a1f22)}
+.pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.pct b{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--acc2);background:var(--card);border-radius:12px;padding:2px 10px}
+.pct span{margin-top:6px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;background:var(--card);padding:0 6px}
+.cards{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-top:14px}
+.mini{background:#1d1d28;border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;display:grid;gap:4px;min-height:132px;align-content:center}
+.mini .ico{font-size:36px}
+.mini small{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.mini b{font-size:14px}
+.mini .v{font-weight:800;color:var(--acc2);font-variant-numeric:tabular-nums;font-size:14px}
+.mini.tgt .v{color:var(--win)}
+.arrow{color:var(--mut);font-size:22px}
+.umult{text-align:center;color:var(--mut);font-size:13px;margin:12px 0 8px}
+.umult b{color:var(--txt)}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chip{background:#1d1d28;border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:10px 0;font-weight:700;cursor:pointer;transition:.2s}
+.chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#140c02}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.go{width:100%;margin-top:12px;border:0;border-radius:14px;padding:16px;font-weight:900;font-size:16px;letter-spacing:.08em;color:#140c02;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 10px 30px -10px #ff8a1f99}
+.go:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.sell{width:100%;margin-top:8px;border:1px solid var(--line);background:none;color:var(--mut);border-radius:12px;padding:10px;font-weight:600;cursor:pointer;font:inherit}
+.sell:disabled{opacity:.35;cursor:not-allowed}
+.banner{margin-top:12px;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;background:#1d1d28;border:1px solid var(--line)}
+.banner.win{color:var(--win);border-color:#3ddc8455;background:#3ddc8414}
+.banner.lose{color:var(--lose);border-color:#ff4d5e55;background:#ff4d5e14}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.item{background:#1d1d28;border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;display:grid;gap:3px;font:inherit;color:inherit}
+.item .ico{font-size:26px}
+.item b{font-size:12px}
+.item .v{font-size:12px;color:var(--acc2);font-weight:700;font-variant-numeric:tabular-nums}
+.item.sel{border-color:var(--acc);box-shadow:0 0 0 2px #ff8a1f55}
+.ushop{display:grid;gap:8px}
+.ushop .item{grid-template-columns:auto 1fr auto;text-align:left;align-items:center;padding:10px 12px}
+.ushop .item .ico{font-size:24px}
+.ushop .item:disabled{opacity:.45;cursor:not-allowed}
+.price{font-weight:700;font-size:13px;color:var(--txt);background:#2a2a38;border-radius:10px;padding:6px 10px}
+.ushop .item:hover:not(:disabled) .price{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#140c02}
+.empty{color:var(--mut);font-size:13px;margin:0}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="stage">
-    <h1>✨ Кликер Вселенная ✨</h1>
-    <div class="score" id="score">0</div>
-    <div class="rate" id="rate">0 / сек</div>
-    <div id="goal"></div>
-    <button id="coin" aria-label="Клик">🪙</button>
-    <div id="warn"></div>
+
+<!-- ===== КЛИКЕР ===== -->
+<div class="view on" id="v-clicker">
+  <div class="wrap">
+    <div class="stage">
+      <h1>✨ Кликер Вселенная ✨</h1>
+      <div class="top">
+        <div class="pill">⭐ <b id="stars">0</b></div>
+        <button class="pbtn" id="btnUp">🎰 Апгрейдер</button>
+        <button class="pbtn gold" id="btnRebirth">♻️ Перерождение</button>
+      </div>
+      <div class="score" id="score">0</div>
+      <div class="rate" id="rate">0 / сек</div>
+      <div id="goal"></div>
+      <button id="coin" aria-label="Клик">🪙</button>
+      <div id="warn"></div>
+    </div>
+    <div>
+      <div class="cpanel">
+        <h2>🛒 Улучшения</h2>
+        <div id="upgrades" style="display:grid;gap:10px"></div>
+      </div>
+      <div class="cpanel" style="margin-top:20px">
+        <h2>🌟 Звёздный магазин</h2>
+        <div id="starShop" style="display:grid;gap:10px"></div>
+      </div>
+    </div>
   </div>
-  <div class="shop">
-    <h2>🛒 Улучшения</h2>
-    <div id="upgrades"></div>
+</div>
+
+<!-- ===== АПГРЕЙДЕР ===== -->
+<div class="view" id="v-up">
+  <div class="app">
+    <div class="uhead">
+      <button class="pbtn" id="btnBack">← Назад</button>
+      <h1>Апгрейдер</h1>
+      <div class="pill">⭐ <b id="uStars">0</b></div>
+    </div>
+
+    <div class="panel">
+      <div class="gauge">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="zone" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffb020"/><stop offset="1" stop-color="#ff6a00"/>
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#2a2a38" stroke-width="14"/>
+          <path id="uZone" fill="none" stroke="url(#zone)" stroke-width="14"/>
+          <g id="uNeedle" style="transform-origin:100px 100px">
+            <path d="M100,26 L95,100 L105,100 Z" fill="#ffffff"/>
+            <circle cx="100" cy="100" r="8" fill="#ffffff"/>
+            <circle cx="100" cy="100" r="3" fill="#16161f"/>
+          </g>
+        </svg>
+        <div class="pct"><b id="uPct">50%</b><span>шанс успеха</span></div>
+      </div>
+
+      <div class="cards">
+        <div class="mini" id="uStake"></div>
+        <div class="arrow">→</div>
+        <div class="mini tgt" id="uTarget"></div>
+      </div>
+
+      <div class="umult" id="uMult"></div>
+      <div class="chips" id="uChips">
+        <button class="chip" data-c="10">10%</button>
+        <button class="chip" data-c="25">25%</button>
+        <button class="chip" data-c="50">50%</button>
+        <button class="chip" data-c="75">75%</button>
+      </div>
+
+      <button class="go" id="uSpin">ПРОКАЧАТЬ</button>
+      <button class="sell" id="uSell">Продать за звёзды</button>
+      <div class="banner" id="uResult">Выбери предмет в инвентаре</div>
+    </div>
+
+    <div class="panel">
+      <h2>Инвентарь</h2>
+      <div class="grid" id="uInv"></div>
+      <p class="empty" id="uEmpty"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Магазин (за звёзды)</h2>
+      <div class="ushop" id="uShop"></div>
+    </div>
   </div>
 </div>
 
 <script>
+/* ===== ДАННЫЕ ===== */
 const UPGRADES = [
   {id:'finger', ico:'👆', name:'Сильный палец', desc:'+1 за клик', type:'click', val:1, base:15},
   {id:'hammer', ico:'🔨', name:'Золотой молот', desc:'+5 за клик', type:'click', val:5, base:120},
@@ -67,75 +199,52 @@ const UPGRADES = [
   {id:'star',   ico:'⭐', name:'Звёздная фабрика', desc:'+3000 в секунду', type:'auto', val:3000, base:250000}
 ];
 
-/* Бонусы за количество кликов */
-const MILESTONES = [
-  {at:100,  reward:500},
-  {at:1000, reward:1000}
+/* Звёздный магазин: покупки за звёзды, сохраняются после перерождения */
+const STAR_ITEMS = [
+  {id:'sclick', ico:'🌟', name:'Звёздный клик', desc:'Клики ×2', cost:5,   apply:'clickMult', val:2},
+  {id:'planet', ico:'🪐', name:'Планета-ферма', desc:'+50 в секунду', cost:8,   apply:'auto', val:50},
+  {id:'galaxy', ico:'🌌', name:'Галактика', desc:'+400 в секунду', cost:25,  apply:'auto', val:400},
+  {id:'dragon', ico:'🐉', name:'Дракон-кладовая', desc:'+1500 в секунду', cost:80,  apply:'auto', val:1500},
+  {id:'void',   ico:'🕳️', name:'Чёрная дыра', desc:'Клики ×3', cost:150, apply:'clickMult', val:3}
 ];
-const claimed = new Set();
-let totalClicks = 0;
 
-const owned = {};
-UPGRADES.forEach(u => owned[u.id] = 0);
-let score = 0;
+const MILESTONES = [{at:100, reward:500}, {at:1000, reward:1000}];
+const REBIRTH_MIN = 5000;
+
+const UP_SHOP = [
+  {name:'Кепка', value:2, ico:'🧢'},
+  {name:'Наушники', value:5, ico:'🎧'},
+  {name:'Часы', value:10, ico:'⌚'},
+  {name:'Кроссовки', value:20, ico:'👟'},
+  {name:'Ноутбук', value:50, ico:'💻'}
+];
+const EDGE = 0.95;
+
+/* ===== СОСТОЯНИЕ ===== */
+const G = {score:0, totalClicks:0, claimed:new Set(), owned:{}, stars:10, starOwned:{}};
+UPGRADES.forEach(u => G.owned[u.id] = 0);
+const ug = {inv:[], selected:null, nextId:1, spinning:false, chance:50, angle:0};
 
 const $ = id => document.getElementById(id);
-const coin = $('coin'), scoreEl = $('score'), rateEl = $('rate'), goalEl = $('goal'), warnEl = $('warn'), shopEl = $('upgrades');
-
-function fmt(n){
+const fmt = n => {
   if (n < 1000) return Math.floor(n).toString();
   const s = ['K','M','B','T','Qa','Qi'];
   let i = -1;
   while (n >= 1000 && i < s.length - 1){ n /= 1000; i++; }
   return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + s[i];
-}
+};
+const mod = (x, m) => ((x % m) + m) % m;
 
-const cost = u => Math.floor(u.base * Math.pow(1.6, owned[u.id]));
-const clickPower = () => 1 + UPGRADES.filter(u => u.type === 'click').reduce((a,u) => a + u.val * owned[u.id], 0);
-const critOn = () => owned.crit > 0;
-const perSec = () => UPGRADES.filter(u => u.type === 'auto').reduce((a,u) => a + u.val * owned[u.id], 0);
+const cost = u => Math.floor(u.base * Math.pow(1.6, G.owned[u.id]));
+const clickPower = () => 1 + UPGRADES.filter(u => u.type === 'click').reduce((a,u) => a + u.val * G.owned[u.id], 0);
+const clickMult = () => STAR_ITEMS.reduce((m,s) => s.apply === 'clickMult' && G.starOwned[s.id] ? m * s.val : m, 1);
+const critOn = () => G.owned.crit > 0;
+const perSec = () =>
+  UPGRADES.filter(u => u.type === 'auto').reduce((a,u) => a + u.val * G.owned[u.id], 0) +
+  STAR_ITEMS.filter(s => s.apply === 'auto' && G.starOwned[s.id]).reduce((a,s) => a + s.val, 0);
+const rebirthReward = () => Math.max(1, Math.floor(Math.sqrt(G.score / 500)));
 
-/* ---------- Магазин ---------- */
-UPGRADES.forEach(u => {
-  const b = document.createElement('button');
-  b.className = 'up';
-  b.id = 'up-' + u.id;
-  b.innerHTML = `
-    <span class="ico">${u.ico}</span>
-    <span class="info"><b>${u.name}</b><small>${u.desc}</small><div class="lvl"></div></span>
-    <span class="right"><span class="cost"></span></span>`;
-  b.addEventListener('click', () => buy(u));
-  shopEl.appendChild(b);
-});
-
-function buy(u){
-  if (u.max && owned[u.id] >= u.max) return;
-  const c = cost(u);
-  if (score < c) return;
-  score -= c;
-  owned[u.id]++;
-  burst(innerWidth / 2, innerHeight / 2, '🎉');
-  updateUI();
-}
-
-function updateUI(){
-  scoreEl.textContent = fmt(score);
-  rateEl.textContent = fmt(perSec()) + ' / сек';
-  const next = MILESTONES.find(m => !claimed.has(m.at));
-  goalEl.textContent = next
-    ? `Кликов: ${totalClicks} · Бонус на ${next.at}: +${next.reward}`
-    : `Кликов: ${totalClicks} · Все бонусы получены 🎉`;
-  UPGRADES.forEach(u => {
-    const b = $('up-' + u.id);
-    const maxed = u.max && owned[u.id] >= u.max;
-    b.disabled = maxed || score < cost(u);
-    b.querySelector('.lvl').textContent = maxed ? 'Куплено' : 'Уровень ' + owned[u.id];
-    b.querySelector('.cost').textContent = maxed ? 'MAX' : fmt(cost(u));
-  });
-}
-
-/* ---------- Бонусы ---------- */
-function showToast(text){
+function toast(text){
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = text;
@@ -143,17 +252,125 @@ function showToast(text){
   setTimeout(() => el.remove(), 2600);
 }
 
+function burst(x, y, text){
+  const el = document.createElement('div');
+  el.className = 'fx';
+  el.textContent = text;
+  el.style.left = (x - 10 + Math.random()*20) + 'px';
+  el.style.top = (y - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+/* ===== ВИДЫ ===== */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('v-' + name).classList.add('on');
+  if (name === 'up') uRender();
+  window.scrollTo(0, 0);
+}
+
+/* ===== КЛИКЕР: СОЗДАНИЕ КНОПОК ===== */
+UPGRADES.forEach(u => {
+  const b = document.createElement('button');
+  b.className = 'up';
+  b.id = 'up-' + u.id;
+  b.innerHTML = `<span class="ico">${u.ico}</span>
+    <span class="info"><b>${u.name}</b><small>${u.desc}</small><div class="lvl"></div></span>
+    <span class="right"><span class="cost"></span></span>`;
+  b.onclick = () => buyUpgrade(u);
+  $('upgrades').appendChild(b);
+});
+
+STAR_ITEMS.forEach(s => {
+  const b = document.createElement('button');
+  b.className = 'up star';
+  b.id = 'st-' + s.id;
+  b.innerHTML = `<span class="ico">${s.ico}</span>
+    <span class="info"><b>${s.name}</b><small>${s.desc}</small><div class="lvl"></div></span>
+    <span class="right"><span class="cost">⭐ ${s.cost}</span></span>`;
+  b.onclick = () => buyStar(s);
+  $('starShop').appendChild(b);
+});
+
+function buyUpgrade(u){
+  if (u.max && G.owned[u.id] >= u.max) return;
+  const c = cost(u);
+  if (G.score < c) return;
+  G.score -= c;
+  G.owned[u.id]++;
+  burst(innerWidth / 2, innerHeight / 2, '🎉');
+  renderClicker();
+}
+
+function buyStar(s){
+  if (G.starOwned[s.id] || G.stars < s.cost) return;
+  G.stars -= s.cost;
+  G.starOwned[s.id] = true;
+  toast(`${s.ico} Куплено: ${s.name}`);
+  renderClicker();
+}
+
+function rebirth(){
+  if (G.score < REBIRTH_MIN) return;
+  const r = rebirthReward();
+  if (!confirm(`Перерождение даст ${r} ⭐. Монеты, улучшения, клики и бонусы клика сбросятся. Продолжить?`)) return;
+  G.stars += r;
+  G.score = 0;
+  G.totalClicks = 0;
+  G.claimed.clear();
+  UPGRADES.forEach(u => G.owned[u.id] = 0);
+  toast(`♻️ Перерождение! +${r} ⭐`);
+  renderClicker();
+}
+
+function renderClicker(){
+  $('score').textContent = fmt(G.score);
+  $('rate').textContent = fmt(perSec()) + ' / сек';
+  $('stars').textContent = fmt(G.stars);
+  const next = MILESTONES.find(m => !G.claimed.has(m.at));
+  $('goal').textContent = next
+    ? `Кликов: ${G.totalClicks} · Бонус на ${next.at}: +${next.reward}`
+    : `Кликов: ${G.totalClicks} · Все бонусы получены 🎉`;
+
+  const rb = $('btnRebirth');
+  rb.disabled = G.score < REBIRTH_MIN;
+  rb.textContent = G.score < REBIRTH_MIN
+    ? `♻️ Перерождение (от ${fmt(REBIRTH_MIN)})`
+    : `♻️ Перерождение +${rebirthReward()} ⭐`;
+
+  UPGRADES.forEach(u => {
+    const b = $('up-' + u.id);
+    const maxed = u.max && G.owned[u.id] >= u.max;
+    b.disabled = maxed || G.score < cost(u);
+    b.querySelector('.lvl').textContent = maxed ? 'Куплено' : 'Уровень ' + G.owned[u.id];
+    b.querySelector('.cost').textContent = maxed ? 'MAX' : fmt(cost(u));
+  });
+
+  STAR_ITEMS.forEach(s => {
+    const b = $('st-' + s.id);
+    const owned = !!G.starOwned[s.id];
+    b.disabled = owned || G.stars < s.cost;
+    b.querySelector('.lvl').textContent = owned ? 'Куплено' : '';
+    b.querySelector('.cost').textContent = owned ? 'ВЗЯТО' : '⭐ ' + s.cost;
+  });
+}
+
+$('btnUp').onclick = () => showView('up');
+$('btnRebirth').onclick = rebirth;
+
+/* ===== БОНУСЫ ЗА КЛИКИ ===== */
 function checkMilestones(){
   MILESTONES.forEach(m => {
-    if (totalClicks >= m.at && !claimed.has(m.at)){
-      claimed.add(m.at);
-      score += m.reward;
-      showToast(`🏆 ${m.at} кликов! Бонус +${fmt(m.reward)}`);
+    if (G.totalClicks >= m.at && !G.claimed.has(m.at)){
+      G.claimed.add(m.at);
+      G.score += m.reward;
+      toast(`🏆 ${m.at} кликов! Бонус +${fmt(m.reward)}`);
     }
   });
 }
 
-/* ---------- Анти-автокликер ---------- */
+/* ===== АНТИ-АВТОКЛИКЕР ===== */
 const clickTimes = [];
 let fastStreak = 0, lockUntil = 0, lockTimer = null;
 
@@ -168,9 +385,9 @@ function isBot(now){
   if (clickTimes.length === 12){
     const gaps = [];
     for (let i = 1; i < clickTimes.length; i++) gaps.push(clickTimes[i] - clickTimes[i-1]);
-    const mean = gaps.reduce((a,b)=>a+b,0) / gaps.length;
-    const sd = Math.sqrt(gaps.reduce((a,g)=>a + (g-mean)**2, 0) / gaps.length);
-    if (mean < 400 && sd < 6) return true; // слишком ровный ритм — это машина
+    const mean = gaps.reduce((a,b) => a + b, 0) / gaps.length;
+    const sd = Math.sqrt(gaps.reduce((a,g) => a + (g - mean) ** 2, 0) / gaps.length);
+    if (mean < 400 && sd < 6) return true;
   }
   return false;
 }
@@ -179,58 +396,178 @@ function lockOut(){
   lockUntil = performance.now() + 3000;
   clickTimes.length = 0;
   fastStreak = 0;
+  const coin = $('coin');
   coin.classList.add('locked');
   let left = 3;
-  warnEl.textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
+  $('warn').textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
   clearInterval(lockTimer);
   lockTimer = setInterval(() => {
     left--;
-    if (left > 0) warnEl.textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
+    if (left > 0) $('warn').textContent = `🤖 Автокликер обнаружен! Ожидание ${left} сек`;
     else {
       clearInterval(lockTimer);
       coin.classList.remove('locked');
-      warnEl.textContent = '';
+      $('warn').textContent = '';
     }
   }, 1000);
 }
 
-/* ---------- Клик ---------- */
-function burst(x, y, text){
-  const el = document.createElement('div');
-  el.className = 'fx';
-  el.textContent = text;
-  el.style.left = (x - 10 + Math.random()*20) + 'px';
-  el.style.top = (y - 20) + 'px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 900);
-}
-
-coin.addEventListener('pointerdown', e => {
-  if (!e.isTrusted) return;                 // программные клики игнорируются
+/* ===== КЛИК ===== */
+$('coin').addEventListener('pointerdown', e => {
+  if (!e.isTrusted) return;
   const now = performance.now();
   if (now < lockUntil) return;
   if (isBot(now)){ lockOut(); return; }
 
-  let gain = clickPower();
+  let gain = clickPower() * clickMult();
   let crit = false;
   if (critOn() && Math.random() < 0.1){ gain *= 5; crit = true; }
-  score += gain;
-  totalClicks++;
+  G.score += gain;
+  G.totalClicks++;
   checkMilestones();
 
+  const coin = $('coin');
   coin.classList.remove('hit'); void coin.offsetWidth; coin.classList.add('hit');
   burst(e.clientX, e.clientY, (crit ? '💥 ' : '+') + fmt(gain));
-  updateUI();
+  renderClicker();
 });
 
-/* ---------- Игровой цикл ---------- */
+/* ===== ИГРОВОЙ ЦИКЛ ===== */
 setInterval(() => {
   const rate = perSec();
-  if (rate > 0) score += rate / 10;
-  updateUI();
+  if (rate > 0) G.score += rate / 10;
+  renderClicker();
 }, 100);
 
-updateUI();
+/* ===== АПГРЕЙДЕР ===== */
+const uMult = () => EDGE * 100 / ug.chance;
+
+function uDrawGauge(){
+  const pt = d => { const f = d * Math.PI / 180; return [100 + 80 * Math.sin(f), 100 - 80 * Math.cos(f)]; };
+  const end = ug.chance * 3.6;
+  const [x1, y1] = pt(0), [x2, y2] = pt(end);
+  $('uZone').setAttribute('d', `M${x1},${y1} A80,80 0 ${end > 180 ? 1 : 0} 1 ${x2},${y2}`);
+  $('uPct').textContent = ug.chance + '%';
+}
+
+function uSetResult(text, cls){
+  const r = $('uResult');
+  r.textContent = text;
+  r.className = 'banner' + (cls ? ' ' + cls : '');
+}
+
+function uRender(){
+  $('uStars').textContent = fmt(G.stars);
+  const it = ug.inv.find(i => i.id === ug.selected);
+  $('uStake').innerHTML = it
+    ? `<small>Ваша ставка</small><span class="ico">${it.ico}</span><b>${it.name}</b><span class="v">⭐ ${fmt(it.value)}</span>`
+    : `<small>Ваша ставка</small><span class="ico">❔</span><b>Не выбрано</b>`;
+  $('uTarget').innerHTML = it
+    ? `<small>Цель</small><span class="ico">🎯</span><b>При удаче</b><span class="v">⭐ ${fmt(it.value * uMult())}</span>`
+    : `<small>Цель</small><span class="ico">🎯</span><b>—</b>`;
+  $('uMult').innerHTML = `Множитель при удаче: <b>×${uMult().toFixed(2)}</b>. При провале предмет пропадает.`;
+  uDrawGauge();
+  document.querySelectorAll('#uChips .chip').forEach(b => {
+    b.classList.toggle('on', +b.dataset.c === ug.chance);
+    b.disabled = ug.spinning;
+  });
+  $('uSpin').disabled = !it || ug.spinning;
+  $('uSell').disabled = !it || ug.spinning;
+  $('uEmpty').textContent = ug.inv.length ? '' : 'Инвентарь пуст. Купи предмет в магазине.';
+
+  const inv = $('uInv');
+  inv.innerHTML = '';
+  ug.inv.forEach(i => {
+    const d = document.createElement('button');
+    d.className = 'item' + (i.id === ug.selected ? ' sel' : '');
+    d.innerHTML = `<span class="ico">${i.ico}</span><b>${i.name}</b><span class="v">⭐ ${fmt(i.value)}</span>`;
+    d.onclick = () => { if (!ug.spinning){ ug.selected = i.id; uRender(); } };
+    inv.appendChild(d);
+  });
+
+  document.querySelectorAll('#uShop .item').forEach((b, idx) => {
+    b.disabled = G.stars < UP_SHOP[idx].value;
+  });
+}
+
+function uBuy(s){
+  if (ug.spinning) return;
+  if (G.stars < s.value){
+    uSetResult('Не хватает звёзд', 'lose');
+    return;
+  }
+  G.stars -= s.value;
+  ug.inv.push({id: ug.nextId++, name: s.name, value: s.value, ico: s.ico});
+  uSetResult('Куплено: ' + s.name);
+  uRender();
+}
+
+function uSpin(){
+  const it = ug.inv.find(i => i.id === ug.selected);
+  if (!it || ug.spinning) return;
+  ug.spinning = true;
+  uRender();
+  uSetResult('Прокачка...');
+  const c = ug.chance;
+  const roll = Math.random() * 100;
+  const win = roll < c;
+  const needle = $('uNeedle');
+  const start = ug.angle;
+  const target = roll * 3.6;
+  const turns = 4 + Math.floor(Math.random() * 4);
+  const D = mod(target - start, 360) + 360 * turns;
+  const dur = 3500 + Math.random() * 1500;
+  const t0 = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 4);
+  needle.style.transition = 'none';
+  function frame(now){
+    const t = Math.min(1, (now - t0) / dur);
+    needle.style.transform = `rotate(${start + D * ease(t)}deg)`;
+    if (t < 1) requestAnimationFrame(frame);
+    else { ug.angle = start + D; setTimeout(() => uFinish(it, win, roll, c), 200); }
+  }
+  requestAnimationFrame(frame);
+}
+
+function uFinish(it, win, roll, c){
+  ug.spinning = false;
+  if (win){
+    it.value = Math.round(it.value * uMult());
+    uSetResult(`🎉 Удача! Предмет теперь стоит ⭐ ${fmt(it.value)}`, 'win');
+  } else {
+    ug.inv = ug.inv.filter(i => i.id !== it.id);
+    ug.selected = null;
+    uSetResult(`💥 Провал (выпало ${roll.toFixed(1)}, нужно меньше ${c}). Предмет потерян.`, 'lose');
+  }
+  uRender();
+}
+
+function uSell(){
+  const it = ug.inv.find(i => i.id === ug.selected);
+  if (!it || ug.spinning) return;
+  G.stars += it.value;
+  ug.inv = ug.inv.filter(i => i.id !== it.id);
+  ug.selected = null;
+  uSetResult(`Продано за ⭐ ${fmt(it.value)}`);
+  uRender();
+}
+
+UP_SHOP.forEach(s => {
+  const b = document.createElement('button');
+  b.className = 'item';
+  b.innerHTML = `<span class="ico">${s.ico}</span><div><b>${s.name}</b></div><span class="price">⭐ ${fmt(s.value)}</span>`;
+  b.onclick = () => uBuy(s);
+  $('uShop').appendChild(b);
+});
+
+document.querySelectorAll('#uChips .chip').forEach(b => {
+  b.onclick = () => { if (!ug.spinning){ ug.chance = +b.dataset.c; uRender(); } };
+});
+$('uSpin').onclick = uSpin;
+$('uSell').onclick = uSell;
+$('btnBack').onclick = () => showView('clicker');
+
+renderClicker();
 </script>
 </body>
 </html>
