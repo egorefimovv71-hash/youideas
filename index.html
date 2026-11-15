@@ -536,14 +536,38 @@
     avatarEl.textContent = 'Я';
   }
 
-  // ---- Баланс ----
-  const _saved = localStorage.getItem('balance');
-  let balance = _saved !== null ? +_saved : 0;
+    // ---- Баланс ----
+  // ⚠️ ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ОТ NGROK
+  const API_URL = 'https://ТВОЯ_ССЫЛКА.ngrok-free.app'; 
+  
+  let balance = 0;
+  let telegramId = null;
+
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    telegramId = tg.initDataUnsafe.user.id;
+  }
+
+  async function fetchBalanceFromDB() {
+    if (!telegramId) return;
+    try {
+      const res = await fetch(`${API_URL}/api/balance?user_id=${telegramId}`);
+      const data = await res.json();
+      if (data.balance !== undefined) {
+        balance = data.balance;
+        renderBalance();
+      }
+    } catch (e) {
+      console.log("Ошибка загрузки баланса с сервера", e);
+    }
+  }
+
   function renderBalance() {
-    localStorage.setItem('balance', balance);
+    // Убрали localStorage, теперь баланс приходит с сервера
     document.getElementById('balance').textContent = balance.toLocaleString('ru-RU');
   }
-  renderBalance();
+  
+  // Запускаем загрузку баланса при старте
+  fetchBalanceFromDB();
 
   // ---- Переключение вкладок ----
   const navButtons = document.querySelectorAll('.nav-btn');
@@ -590,6 +614,33 @@ const GAMES = {"plinko": "<!DOCTYPE html>\n<html lang=\"ru\">\n<head>\n<meta cha
       tg.BackButton.show();
     }
   }
+
+   // Слушаем сообщения от игр (выигрыши и проигрыши)
+  window.addEventListener('message', async (event) => {
+    // Если игра прислала результат
+    if (event.data && event.data.action === 'update_balance') {
+      const amount = event.data.amount; // На сколько изменился баланс (минус или плюс)
+      
+      if (!telegramId) return;
+      
+      try {
+        // Отправляем в базу
+        const res = await fetch(`${API_URL}/api/add_balance`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: telegramId, amount: amount })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          balance = data.new_balance; // Обновляем баланс на экране
+          renderBalance();
+        }
+      } catch (e) {
+        console.log("Ошибка сохранения результата игры", e);
+      }
+    }
+  });
 
   function closeGame() {
     if (tg && tg.BackButton) {
